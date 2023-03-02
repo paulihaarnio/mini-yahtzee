@@ -39,8 +39,8 @@ export default StyleSheet.create({
   },
   dicepoints: {
     flexDirection: 'row', 
-    width: 280,
-    alignContent: 'center'
+    alignContent: 'center',
+    marginHorizontal:40
   },
   gameinfo: {
     textAlign: 'center',

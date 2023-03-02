@@ -13,18 +13,14 @@ import { FontAwesome5 } from '@expo/vector-icons';
 
 
 export default function App() {
-  
   return (
-    
       <NavigationContainer>
         <Tab.Navigator>
-          <Tab.Screen name='Home' component={Home} options={{tabBarIcon:()=><AntDesign name="home" size={24} color="black" />}}/>
-          <Tab.Screen name='Gameboard' component={Gameboard} options={{tabBarIcon:()=> <FontAwesome5 name="dice" size={24} color="black" />}}/>
-          <Tab.Screen name='Scoreboard' component={Scoreboard} options={{tabBarIcon:()=> <FontAwesome5 name="clipboard-list" size={24} color="black" />}}/>
+          <Tab.Screen name='Home' component={Home} options={{tabBarStyle:{display:'none'},tabBarLabelStyle:{color:"#d1301fcd"},tabBarIcon:()=><AntDesign name="home" size={24} color="black" />}}/>
+          <Tab.Screen name='Gameboard' component={Gameboard} options={{tabBarLabelStyle:{color:"#d1301fcd"},tabBarIcon:()=> <FontAwesome5 name="dice" size={24} color="black" />}}/>
+          <Tab.Screen name='Scoreboard' component={Scoreboard} options={{tabBarLabelStyle:{color:"#d1301fcd"},tabBarIcon:()=> <FontAwesome5 name="clipboard-list" size={24} color="black" />}}/>
         </Tab.Navigator>
-      </NavigationContainer>
-     
-      
+      </NavigationContainer> 
   );
 }
 
