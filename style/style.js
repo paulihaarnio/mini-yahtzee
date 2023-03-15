@@ -35,7 +35,8 @@ export default StyleSheet.create({
   gameboard: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop:10
+    marginTop:10,
+    backgroundColor:"#ffffff"
   },
   dicepoints: {
     flexDirection: 'row', 

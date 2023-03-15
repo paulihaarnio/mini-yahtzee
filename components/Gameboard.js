@@ -2,12 +2,12 @@ import React,{useState,useEffect,useCallback} from "react";
 import { Text , View , Pressable } from "react-native";
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import style from "../style/style";
-import { NBR_OF_DICES, NBR_OF_THROWS,BONUS_POINTS,BONUS_POINTS_LIMIT,MAX_SPOT,MIN_SPOT,NBR_OF_SCOREBOARD_ROWS } from "../constants/Constants";
+import { NBR_OF_DICES, NBR_OF_THROWS,BONUS_POINTS,BONUS_POINTS_LIMIT,MAX_SPOT,SCOREBOARD_KEY } from "../constants/Constants";
 import { Col, Grid} from 'react-native-easy-grid'
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 let board =[]
 
-//const WINNING_POINTS = 23 
 
 export default Gameboard = ({route}) => {
     const [playername, setplayername] = useState("")
@@ -19,6 +19,10 @@ export default Gameboard = ({route}) => {
     const [dicePointsTotal, setDicePointsTotal]=useState(new Array(MAX_SPOT).fill(0))
     const [totalPoints, setTotalPoints]=useState(0)
     const [bonusPoints, setBonusPoints]=useState(BONUS_POINTS_LIMIT)
+    const [scores, setScores]=useState([])
+    const [bonusStatus, setBonusStatus]=useState('')
+    const [isDisabled,setIsDisabled]=useState(false)
+
 
     const row =[]
     if(nbrOfThrowsLeft===3){
@@ -92,8 +96,9 @@ export default Gameboard = ({route}) => {
     useEffect(()=>{
         if(playername===""&&route.params?.player){
             setplayername(route.params.player)
+            getScoreBoardData()
         }
-    })
+    },[])
 
     useEffect(()=>{
         
@@ -105,6 +110,24 @@ export default Gameboard = ({route}) => {
             setNbrOfThrowsLeft(NBR_OF_THROWS-1)
         }
     },[nbrOfThrowsLeft])
+
+    useEffect(() => {
+        if(selectedDicePoints.every(x => x)) {
+            setStatus("Game over. All points selected");
+            savePlayerPoints();
+            setIsDisabled(true);
+            getScoreBoardData();
+        }
+    }, [totalPoints])
+
+    useEffect(() => {
+        if(bonusPoints <= 0) {
+            setBonusStatus("Congrats! Bonuspoints (" + BONUS_POINTS + ") added" );
+        }
+        else {
+            setBonusStatus("You are " + bonusPoints + " points away from bonus")
+        }
+    }, [bonusPoints]);
 
     function getSpotTotal(i){
         return dicePointsTotal[i]
@@ -182,17 +205,51 @@ export default Gameboard = ({route}) => {
         }
     }
 
+    const getScoreBoardData = async () => {
+        try {
+            const jsonValue = await AsyncStorage.getItem(SCOREBOARD_KEY);
+            if(jsonValue !== null) {
+                let tmpScores = JSON.parse(jsonValue);
+                tmpScores.sort((a, b) => parseFloat(b.points) - parseFloat(a.points)); 
+                setScores(tmpScores);
+            }
+        }
+        catch (error) {
+            console.log('Read error: ' + error.message)
+        }
+    }
+
+    const savePlayerPoints = async () => {
+        const currentDate = new Date().toLocaleDateString();
+        const currentTime = new Date().toLocaleTimeString();
+
+        const playerPoints = {
+            name: playername,
+            date: currentDate,
+            time: currentTime,
+            points: totalPoints
+        }
+        try {
+            const newScore = [...scores, playerPoints];
+            const jsonValue = JSON.stringify(newScore);
+            await AsyncStorage.setItem(SCOREBOARD_KEY, jsonValue);
+        }
+        catch (error) {
+            console.log('Save error: ' + error.message)
+        }
+    }
+
         return (
             <View style={style.gameboard}>
                 <View style={style.flex}>{row}</View>
                 <Text style={style.gameinfo}>Throws left: {nbrOfThrowsLeft}</Text>
                 <Text style={style.gameinfo}>{status}</Text>
-                <Pressable style={style.button}
-                    onPress={() => throwDices()}>
-                        <Text style={style.buttonText}>Throw dices</Text>
+                <Pressable style={[style.button,{backgroundColor:isDisabled ? '#fff': style.button.backgroundColor}]}
+                    onPress={() => throwDices() } disabled={isDisabled}> 
+                        <Text style={[style.buttonText,{color:isDisabled ? '#fff' : 'black'}]}>Throw dices</Text>
                 </Pressable>
                 <Text style={style.rules}>Total: {totalPoints}</Text>
-                <Text style={style.rules}>You are {bonusPoints} points away from bonus</Text>
+                <Text style={style.rules}>{bonusStatus}</Text>
                 <View style={style.dicepoints}>
                 <Grid>{pointsRow}</Grid>
                 </View>
